@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Elevent — Vanezi · Análise de Performance</title>
+<link href="https://fonts.googleapis.com/css2?family=Antonio:wght@400;700&family=Noto+Serif:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #09162d;
+    --surface:   #111e38;
+    --surface2:  #17253d;
+    --surface3:  #1e2f4a;
+    --border:    rgba(255,255,255,0.07);
+    --coral:     #ff664d;
+    --coral-dim: rgba(255,102,77,0.12);
+    --cream:     #fffdf5;
+    --green:     #3ecf8e;
+    --gold:      #f5c842;
+    --red:       #ff4f6a;
+    --text-p:    #fffdf5;
+    --text-s:    rgba(255,253,245,0.55);
+    --text-m:    rgba(255,253,245,0.28);
+    --cc:        #ff664d;
+    --cc-dim:    rgba(255,102,77,0.10);
+    --cc-border: rgba(255,102,77,0.25);
+    --ca:        #9880df;
+    --ca-dim:    rgba(152,128,223,0.10);
+    --ca-border: rgba(152,128,223,0.25);
+  }
+
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text-p);
+    font-family: 'Noto Serif', serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::after {
+    content:'';
+    position:fixed; inset:0; pointer-events:none; z-index:0;
+    background:
+      radial-gradient(ellipse 65% 45% at 0% 0%,    rgba(255,102,77,.07) 0%, transparent 55%),
+      radial-gradient(ellipse 50% 40% at 100% 100%, rgba(76,59,130,.10)  0%, transparent 55%);
+  }
+
+  .page {
+    position:relative; z-index:1;
+    max-width:1180px; margin:0 auto;
+    padding:52px 36px 90px;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    display:grid; grid-template-columns:1fr auto;
+    align-items:center; gap:40px;
+    padding-bottom:40px;
+    border-bottom:1px solid var(--border);
+    margin-bottom:52px;
+  }
+
+  .logo-block { display:flex; flex-direction:column; gap:16px; }
+
+  .logo-svg-wrap {
+    display:inline-block; background:#09162d;
+    border-radius:10px; padding:12px 24px;
+    border:1px solid rgba(255,102,77,0.2);
+    box-shadow:0 0 40px rgba(255,102,77,0.08), inset 0 0 0 1px rgba(255,255,255,0.04);
+    width:fit-content;
+  }
+
+  .header-sub { font-size:13px; color:var(--text-s); letter-spacing:.5px; padding-left:2px; }
+
+  .header-right {
+    text-align:right; display:flex;
+    flex-direction:column; align-items:flex-end; gap:10px;
+  }
+
+  .week-pill {
+    font-family:'Antonio', sans-serif; font-size:13px; letter-spacing:2px;
+    color:var(--coral); background:var(--coral-dim);
+    border:1px solid var(--cc-border);
+    padding:7px 18px; border-radius:4px;
+  }
+
+  .client-tag {
+    font-family:'Antonio', sans-serif;
+    font-size:26px; letter-spacing:2px; color:var(--cream);
+  }
+
+  .header-right p { font-size:12px; color:var(--text-m); letter-spacing:.5px; }
+
+  /* ── BUDGET ROW ── */
+  .budget-row { display:flex; gap:10px; margin-bottom:48px; flex-wrap:wrap; align-items:center; }
+
+  .camp-tab {
+    font-family:'Antonio', sans-serif;
+    font-size:13px; letter-spacing:2px; text-transform:uppercase;
+    padding:8px 22px; border-radius:6px; border:1px solid;
+  }
+  .tab-cc { color:var(--cc); background:var(--cc-dim); border-color:var(--cc-border); }
+  .tab-ca { color:var(--ca); background:var(--ca-dim); border-color:var(--ca-border); }
+
+  .chip {
+    font-family:'Antonio', sans-serif; font-size:11px; letter-spacing:1px;
+    padding:8px 16px; border-radius:20px;
+    color:var(--text-s); background:var(--surface2); border:1px solid var(--border);
+  }
+
+  .chip-highlight {
+    font-family:'Antonio', sans-serif; font-size:11px; letter-spacing:1px;
+    padding:8px 16px; border-radius:20px;
+    color:var(--green); background:rgba(62,207,142,.08);
+    border:1px solid rgba(62,207,142,.2);
+  }
+
+  /* ── CAMP SECTION ── */
+  .camp-section { margin-bottom:80px; }
+
+  .camp-header {
+    display:flex; align-items:center; gap:16px;
+    margin-bottom:28px; padding-bottom:20px;
+    border-bottom:1px solid var(--border); flex-wrap:wrap;
+  }
+
+  .camp-label {
+    font-family:'Antonio', sans-serif;
+    font-size:28px; letter-spacing:3px;
+    padding:4px 20px; border-radius:5px;
+  }
+
+  .cc-section .camp-label { color:var(--cc); background:var(--cc-dim); border:1px solid var(--cc-border); }
+  .ca-section .camp-label { color:var(--ca); background:var(--ca-dim); border:1px solid var(--ca-border); }
+
+  .camp-spend {
+    font-family:'Antonio', sans-serif;
+    font-size:13px; letter-spacing:1px; color:var(--text-s);
+  }
+
+  /* ── KPI STRIP ── */
+  .kpi-strip {
+    display:grid; grid-template-columns:repeat(4,1fr);
+    gap:1px; background:var(--border);
+    border:1px solid var(--border); border-radius:12px;
+    overflow:hidden; margin-bottom:24px;
+  }
+
+  .kpi-cell { background:var(--surface); padding:20px 22px; }
+  .kpi-lbl  { font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-m); margin-bottom:8px; }
+  .kpi-val  { font-family:'Antonio', sans-serif; font-size:30px; letter-spacing:.5px; line-height:1; }
+  .cc-section .kpi-val { color:var(--cc); }
+  .ca-section .kpi-val { color:var(--ca); }
+
+  /* ── SEC LABEL ── */
+  .sec-lbl {
+    font-family:'Antonio', sans-serif; font-size:10px;
+    letter-spacing:2.5px; text-transform:uppercase;
+    color:var(--text-m); margin-bottom:14px; padding-left:2px;
+  }
+
+  /* ── METRICS GRID ── */
+  .metrics-grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(155px,1fr));
+    gap:10px; margin-bottom:32px;
+  }
+
+  .mc {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:10px; padding:18px 16px 14px;
+    transition:border-color .2s, transform .2s;
+  }
+  .mc:hover { border-color:rgba(255,255,255,.12); transform:translateY(-2px); }
+  .mc-lbl  { font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-m); margin-bottom:8px; }
+  .mc-val  { font-family:'Antonio', sans-serif; font-size:24px; color:var(--cream); line-height:1; margin-bottom:8px; }
+  .mc-note { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--text-m); }
+  .mc-bar  { height:2px; background:var(--surface3); border-radius:2px; margin-top:10px; overflow:hidden; }
+  .mc-fill { height:100%; border-radius:2px; }
+
+  .dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+  .dot-g { background:var(--green); box-shadow:0 0 5px var(--green); }
+  .dot-y { background:var(--gold);  box-shadow:0 0 5px var(--gold); }
+  .dot-r { background:var(--red);   box-shadow:0 0 5px var(--red); }
+  .dot-n { background:var(--text-m); }
+
+  /* ── FUNNELS ── */
+  .funnels-row { display:grid; gap:12px; margin-bottom:32px; }
+  .funnels-2   { grid-template-columns:1fr 1fr; }
+
+  .funnel-card {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:12px; padding:22px 24px 52px;
+  }
+
+  .funnel-card-title {
+    font-family:'Antonio', sans-serif; font-size:11px;
+    letter-spacing:2px; text-transform:uppercase;
+    color:var(--text-m); margin-bottom:20px;
+    display:flex; align-items:center; gap:8px;
+  }
+
+  .funnel-bars { display:flex; align-items:flex-end; gap:8px; height:100px; }
+
+  .fb {
+    flex:1; border-radius:5px 5px 0 0;
+    position:relative; display:flex;
+    align-items:flex-start; justify-content:center;
+    padding-top:8px; min-width:0; transition:filter .2s;
+  }
+  .fb:hover { filter:brightness(1.15); }
+
+  .fb-lbl {
+    font-family:'Antonio', sans-serif; font-size:10px;
+    letter-spacing:.8px; text-transform:uppercase;
+    color:rgba(255,253,245,.8); text-align:center;
+    line-height:1.2; padding:0 4px;
+  }
+
+  .fb-num {
+    position:absolute; bottom:-24px;
+    font-family:'Antonio', sans-serif; font-size:14px;
+    letter-spacing:.5px; color:var(--text-s);
+    white-space:nowrap; left:50%; transform:translateX(-50%);
+  }
+
+  .fb-pct {
+    position:absolute; bottom:-40px; font-size:10px; color:var(--text-m);
+    white-space:nowrap; left:50%; transform:translateX(-50%);
+  }
+
+  .f-cc-1 { background:rgba(255,102,77,.78); }
+  .f-cc-2 { background:rgba(255,102,77,.52); }
+  .f-cc-3 { background:rgba(255,102,77,.28); }
+  .f-ca-1 { background:rgba(152,128,223,.78); }
+  .f-ca-2 { background:rgba(152,128,223,.52); }
+  .f-ca-3 { background:rgba(152,128,223,.28); }
+  .f-vid-1 { background:rgba(79,158,255,.78); }
+  .f-vid-2 { background:rgba(79,158,255,.52); }
+  .f-vid-3 { background:rgba(79,158,255,.28); }
+
+  /* ── CREATIVE CARDS ── */
+  .creative-grid {
+    display:grid; grid-template-columns:1fr 1fr;
+    gap:12px; margin-bottom:18px;
+  }
+
+  .creative-card {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:12px; overflow:hidden;
+    transition:border-color .2s, transform .2s;
+  }
+  .creative-card:hover { transform:translateY(-2px); }
+  .creative-card.best  { border-color:rgba(62,207,142,.30); }
+  .creative-card.worst { border-color:rgba(255,79,106,.20); }
+
+  .creative-top {
+    padding:14px 18px 12px;
+    display:flex; align-items:center; justify-content:space-between;
+    border-bottom:1px solid var(--border);
+    background:var(--surface2);
+  }
+
+  .creative-badge {
+    font-family:'Antonio', sans-serif; font-size:10px;
+    letter-spacing:1.5px; text-transform:uppercase;
+    padding:4px 10px; border-radius:10px;
+  }
+  .badge-best  { color:var(--green); background:rgba(62,207,142,.12); border:1px solid rgba(62,207,142,.25); }
+  .badge-worst { color:var(--red);   background:rgba(255,79,106,.10); border:1px solid rgba(255,79,106,.20); }
+
+  .creative-body { padding:18px 18px 16px; }
+
+  .creative-stat-row { display:flex; gap:18px; flex-wrap:wrap; margin-bottom:16px; }
+
+  .cs { display:flex; flex-direction:column; gap:4px; }
+  .cs-lbl { font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-m); }
+  .cs-val { font-family:'Antonio', sans-serif; font-size:20px; color:var(--cream); line-height:1; }
+  .cs-val.hl-g  { color:var(--green); }
+  .cs-val.hl-r  { color:var(--red); }
+  .cs-val.hl-cc { color:var(--cc); }
+  .cs-val.hl-ca { color:var(--ca); }
+
+  .creative-link {
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:'Antonio', sans-serif; font-size:10px;
+    letter-spacing:1.5px; text-transform:uppercase;
+    color:var(--text-s); text-decoration:none;
+    padding:7px 14px; border-radius:6px;
+    border:1px solid var(--border);
+    transition:border-color .2s, color .2s, background .2s;
+  }
+  .creative-link:hover { color:var(--cream); border-color:rgba(255,255,255,.2); background:var(--surface2); }
+
+  /* ── CA CREATIVE GRID (2 cards) ── */
+  .ca-creative-grid {
+    display:grid; grid-template-columns:1fr 1fr;
+    gap:12px; margin-bottom:18px;
+  }
+
+  .ca-creative-card {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:12px; overflow:hidden;
+    transition:border-color .2s, transform .2s;
+  }
+  .ca-creative-card:hover { transform:translateY(-2px); }
+  .ca-creative-card.rank1 { border-color:rgba(62,207,142,.28); }
+  .ca-creative-card.rank2 { border-color:rgba(152,128,223,.25); }
+
+  .ca-badge-1 { color:var(--green); background:rgba(62,207,142,.12); border:1px solid rgba(62,207,142,.25); }
+  .ca-badge-2 { color:var(--ca);    background:var(--ca-dim);         border:1px solid var(--ca-border); }
+
+  /* ── CHIPS ── */
+  .chips-row { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:32px; }
+
+  .chip-link {
+    font-family:'Antonio', sans-serif; font-size:10px;
+    letter-spacing:1px; text-transform:uppercase;
+    padding:6px 14px; border-radius:20px;
+    border:1px solid var(--border);
+    color:var(--text-s); text-decoration:none;
+    background:var(--surface);
+    transition:border-color .2s, color .2s, background .2s;
+    display:inline-flex; align-items:center; gap:5px;
+  }
+  .chip-link:hover { color:var(--cream); border-color:rgba(255,255,255,.18); background:var(--surface2); }
+
+  /* ── DIVIDER ── */
+  .divider {
+    position:relative; height:1px;
+    background:var(--border); margin:64px 0;
+  }
+  .divider::before {
+    content:'ELEVENT'; position:absolute; left:50%; top:50%;
+    transform:translate(-50%,-50%);
+    font-family:'Antonio', sans-serif;
+    font-size:10px; letter-spacing:4px; color:var(--text-m);
+    background:var(--bg); padding:0 20px;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    margin-top:64px; padding-top:24px;
+    border-top:1px solid var(--border);
+    display:flex; justify-content:space-between;
+    align-items:center; flex-wrap:wrap; gap:16px;
+  }
+  footer p { font-family:'Antonio', sans-serif; font-size:11px; letter-spacing:2px; color:var(--text-m); text-transform:uppercase; }
+  .legend { display:flex; gap:18px; flex-wrap:wrap; }
+  .leg    { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text-m); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width:680px) {
+    .page { padding:28px 16px 60px; }
+    .header { grid-template-columns:1fr; }
+    .kpi-strip { grid-template-columns:1fr 1fr; }
+    .funnels-2 { grid-template-columns:1fr; }
+    .creative-grid, .ca-creative-grid { grid-template-columns:1fr; }
+    .metrics-grid { grid-template-columns:repeat(2,1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ══ HEADER ══ -->
+  <header class="header">
+    <div class="logo-block">
+      <div class="logo-svg-wrap">
+        <svg width="200" height="44" viewBox="0 0 200 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="6" width="9" height="34" rx="3" transform="rotate(-30 2 6)" fill="#ff664d" opacity="0.65"/>
+          <rect x="18" y="2" width="11" height="38" rx="3" transform="rotate(-30 18 2)" fill="#ff664d"/>
+          <rect x="26" y="3" width="7" height="7" rx="1.5" fill="#ff664d"/>
+          <text x="52" y="33" font-family="Antonio, sans-serif" font-size="30" font-weight="700" letter-spacing="3" fill="#ff664d">ELEVENT</text>
+        </svg>
+      </div>
+      <p class="header-sub">Análise de performance · gestão de tráfego pago</p>
+    </div>
+    <div class="header-right">
+      <div class="week-pill">20/04 — 26/04/2026</div>
+      <p>semana de referência</p>
+      <div class="client-tag">Vanezi</div>
+    </div>
+  </header>
+
+  <!-- budget row -->
+  <div class="budget-row">
+    <div class="camp-tab tab-cc">Conversão</div>
+    <div class="camp-tab tab-ca">Atração</div>
+    <div class="chip">💬 CC: R$14/dia</div>
+    <div class="chip">✨ CA: R$12/dia</div>
+    <div class="chip">Total gasto: R$172,24</div>
+    <div class="chip-highlight">⭐ CCI R$1,45 · 253 seguidores</div>
+  </div>
+
+
+  <!-- ══════════════════════════════
+       CAMPANHA CONVERSÃO (CC)
+  ══════════════════════════════ -->
+  <section class="camp-section cc-section">
+
+    <div class="camp-header">
+      <div class="camp-label">Conversão</div>
+      <span class="camp-spend">R$88,24 investidos · 20/04–26/04</span>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-strip">
+      <div class="kpi-cell"><div class="kpi-lbl">Conversas</div><div class="kpi-val">61</div></div>
+      <div class="kpi-cell"><div class="kpi-lbl">CCI</div><div class="kpi-val">R$1,45</div></div>
+      <div class="kpi-cell"><div class="kpi-lbl">Impressões</div><div class="kpi-val">9.527</div></div>
+      <div class="kpi-cell"><div class="kpi-lbl">Verba usada</div><div class="kpi-val">R$88,24</div></div>
+    </div>
+
+    <!-- Métricas -->
+    <p class="sec-lbl">Métricas gerais</p>
+    <div class="metrics-grid">
+      <div class="mc">
+        <div class="mc-lbl">CPM</div><div class="mc-val">R$9,26</div>
+        <div class="mc-note"><span class="dot dot-g"></span>custo por mil imp.</div>
+        <div class="mc-bar"><div class="mc-fill" style="width:78%;background:var(--green)"></div></div>
+      </div>
+      <div class="mc">
+        <div class="mc-lbl">CPC</div><div class="mc-val">R$0,64</div>
+        <div class="mc-note"><span class="dot dot-g"></span>custo por clique</div>
+        <div class="mc-bar"><div class="mc-fill" style="width:82%;background:var(--green)"></div></div>
+      </div>
+      <div class="mc">
+        <div class="mc-lbl">CTR</div><div class="mc-val">1,44%</div>
+        <div class="mc-note"><span class="dot dot-y"></span>taxa de cliques</div>
+        <div class="mc-bar"><div class="mc-fill" style="width:52%;background:var(--gold)"></div></div>
+      </div>
+      <div class="mc">
+        <div class="mc-lbl">Cliques no link</div><div class="mc-val">137</div>
+        <div class="mc-note"><span class="dot dot-n"></span>—</div>
+        <div class="mc-bar"><div class="mc-fill" style="width:62%;background:var(--cc)"></div></div>
+      </div>
+      <div class="mc">
+        <div class="mc-lbl">Hook Rate</div><div class="mc-val">28,53%</div>
+        <div class="mc-note"><span class="dot dot-g"></span>VV 3s: 2.718</div>
+        <div class="mc-bar"><div class="mc-fill" style="width:72%;background:var(--green)"></div></div>
+      </div>
+      <div class="mc">
+        <div class="mc-lbl">Retenção vídeo</div><div class="mc-val">36,42%</div>
+        <div class="mc-note"><span class="dot dot-g"></span>VV 50%: 990</div>
+        <div class="mc-bar"><div class="mc-fill" style="width:75%;background:var(--green)"></div></div>
+      </div>
+    </div>
+
+    <!-- Funis -->
+    <p class="sec-lbl">Funis de performance</p>
+    <div class="funnels-row funnels-2">
+
+      <div class="funnel-card">
+        <div class="funnel-card-title"><span>💬</span> Funil de Conversas</div>
+        <div class="funnel-bars">
+          <div class="fb f-cc-1" style="height:100%;">
+            <span class="fb-lbl">Impressões</span>
+            <span class="fb-num">9.527</span><span class="fb-pct">100%</span>
+          </div>
+          <div class="fb f-cc-2" style="height:1.44%;">
+            <span class="fb-lbl">Cliques</span>
+            <span class="fb-num">137</span><span class="fb-pct">1,44%</span>
+          </div>
+          <div class="fb f-cc-3" style="height:0.64%;">
+            <span class="fb-lbl">Conversas</span>
+            <span class="fb-num">61</span><span class="fb-pct">0,64%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="funnel-card">
+        <div class="funnel-card-title"><span>🎬</span> Funil de Vídeo</div>
+        <div class="funnel-bars">
+          <div class="fb f-vid-1" style="height:100%;">
+            <span class="fb-lbl">Impressões</span>
+            <span class="fb-num">9.527</span><span class="fb-pct">100%</span>
+          </div>
+          <div class="fb f-vid-2" style="height:28.5%;">
+            <span class="fb-lbl">VV 3s</span>
+            <span class="fb-num">2.718</span><span class="fb-pct">28,5%</span>
+          </div>
+          <div class="fb f-vid-3" style="height:10.4%;">
+            <span class="fb-lbl">VV 50%</span>
+            <span class="fb-num">990</span><span class="fb-pct">10,4%</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Criativos -->
+    <p class="sec-lbl">Criativos em destaque</p>
+    <div class="creative-grid">
+
+      <!-- MELHOR -->
+      <div class="creative-card best">
+        <div class="creative-top">
+          <span class="creative-badge badge-best">🏆 Melhor · Anúncio 19</span>
+        </div>
+        <div class="creative-body">
+          <div class="creative-stat-row">
+            <div class="cs"><span class="cs-lbl">Conversas</span><span class="cs-val hl-cc">24</span></div>
+            <div class="cs"><span class="cs-lbl">CCI</span><span class="cs-val hl-g">R$0,83</span></div>
+            <div class="cs"><span class="cs-lbl">CTR</span><span class="cs-val">1,57%</span></div>
+            <div class="cs"><span class="cs-lbl">CPM</span><span class="cs-val">R$9,15</span></div>
+            <div class="cs"><span class="cs-lbl">Verba</span><span class="cs-val">R$19,86</span></div>
+          </div>
+          <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px;">
+            <div class="cs"><span class="cs-lbl">Impressões</span><span class="cs-val" style="font-size:16px;">2.171</span></div>
+            <div class="cs"><span class="cs-lbl">VV 3s / VV 50%</span><span class="cs-val" style="font-size:16px;">625 / 240</span></div>
+            <div class="cs"><span class="cs-lbl">Retenção</span><span class="cs-val hl-g" style="font-size:16px;">38,40%</span></div>
+          </div>
+          <a class="creative-link" href="https://www.instagram.com/p/DXckuNdAJbA/" target="_blank">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            Ver anúncio
+          </a>
+        </div>
+      </div>
+
+      <!-- PIOR -->
+      <div class="creative-card worst">
+        <div class="creative-top">
+          <span class="creative-badge badge-worst">📉 Pior · Anúncio 21</span>
+        </div>
+        <div class="creative-body">
+          <div class="creative-stat-row">
+            <div class="cs"><span class="cs-lbl">Conversas</span><span class="cs-val hl-r">0</span></div>
+            <div class="cs"><span class="cs-lbl">CCI</span><span class="cs-val hl-r">N/A</span></div>
+            <div class="cs"><span class="cs-lbl">CTR</span><span class="cs-val">1,04%</span></div>
+            <div class="cs"><span class="cs-lbl">CPM</span><span class="cs-val">R$6,94</span></div>
+            <div class="cs"><span class="cs-lbl">Verba</span><span class="cs-val">R$2,68</span></div>
+          </div>
+          <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px;">
+            <div class="cs"><span class="cs-lbl">Impressões</span><span class="cs-val" style="font-size:16px;">386</span></div>
+            <div class="cs"><span class="cs-lbl">VV 3s / VV 50%</span><span class="cs-val" style="font-size:16px;">90 / 43</span></div>
+            <div class="cs"><span class="cs-lbl">Retenção</span><span class="cs-val" style="font-size:16px;">47,78%</span></div>
+          </div>
+          <a class="creative-link" href="https://www.instagram.com/p/DXckubggBJI/" target="_blank">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            Ver anúncio
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <div class="divider"></div>
+
+
+  <!-- ══════════════════════════════
+       CAMPANHA ATRAÇÃO (CA)
+  ══════════════════════════════ -->
+  <section class="camp-section ca-section">
+
+    <div class="camp-header">
+      <div class="camp-label">Atração</div>
+      <span class="camp-spend">R$84,00 investidos · 20/04–26/04</span>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-strip">
+      <div class="kpi-cell"><div class="kpi-lbl">Novos Seguidores</div><div class="kpi-val">253</div></div>
+      <div class="kpi-cell"><div class="kpi-lbl">Custo/seguidor</div><div class="kpi-val">R$0,33</div></div>
+      <div class="kpi-cell"><div class="kpi-lbl">Impressões</div><div class="kpi-val">18.307</div></div>
+      <div class="kpi-cell"><div class="kpi-lbl">Verba usada</div><div class="kpi-val">R$84,00</div></div>
+    </div>
+
+    <!-- Métricas -->
+    <p class="sec-lbl">Métricas gerais</p>
+    <div class="metrics-grid">
+      <div class="mc">
+        <div class="mc-lbl">CPM</div><div class="mc-val">R$4,59</div>
+        <div class="mc-note"><span class="dot dot-g"></span>custo por mil imp.</div>
+        <div class="mc-bar"><div class="mc-fill" style="width:88%;background:var(--green)"></div></div>
+      </div>
+      <div class="mc">
+        <div class="mc-lbl">CTR</div><div class="mc-val">5,93%</div>
+        <div class="mc-note"><span class="dot dot-g"></span>taxa de cliques</div>
+        <div class="mc-bar"><div class="mc-fill" style="width:92%;background:var(--green)"></div></div>
+      </div>
+      <div class="mc">
+        <div class="mc-lbl">Visitas ao Perfil</div><div class="mc-val">880</div>
+        <div class="mc-note"><span class="dot dot-g"></span>custo: R$0,10/visita</div>
+        <div class="mc-bar"><div class="mc-fill" style="width:85%;background:var(--green)"></div></div>
+      </div>
+      <div class="mc">
+        <div class="mc-lbl">Custo/visita</div><div class="mc-val">R$0,10</div>
+        <div class="mc-note"><span class="dot dot-g"></span>eficiência de visita</div>
+        <div class="mc-bar"><div class="mc-fill" style="width:95%;background:var(--green)"></div></div>
+      </div>
+      <div class="mc">
+        <div class="mc-lbl">Hook Rate</div><div class="mc-val">36,16%</div>
+        <div class="mc-note"><span class="dot dot-g"></span>VV 3s: 6.620</div>
+        <div class="mc-bar"><div class="mc-fill" style="width:78%;background:var(--green)"></div></div>
+      </div>
+      <div class="mc">
+        <div class="mc-lbl">Retenção vídeo</div><div class="mc-val">35,00%</div>
+        <div class="mc-note"><span class="dot dot-g"></span>VV 50%: 2.317</div>
+        <div class="mc-bar"><div class="mc-fill" style="width:72%;background:var(--green)"></div></div>
+      </div>
+    </div>
+
+    <!-- Funis -->
+    <p class="sec-lbl">Funis de performance</p>
+    <div class="funnels-row funnels-2">
+
+      <div class="funnel-card">
+        <div class="funnel-card-title"><span>✨</span> Funil de Seguidores</div>
+        <div class="funnel-bars">
+          <div class="fb f-ca-1" style="height:100%;">
+            <span class="fb-lbl">Impressões</span>
+            <span class="fb-num">18.307</span><span class="fb-pct">100%</span>
+          </div>
+          <div class="fb f-ca-2" style="height:4.80%;">
+            <span class="fb-lbl">Visitas</span>
+            <span class="fb-num">880</span><span class="fb-pct">4,80%</span>
+          </div>
+          <div class="fb f-ca-3" style="height:1.38%;">
+            <span class="fb-lbl">Seguidores</span>
+            <span class="fb-num">253</span><span class="fb-pct">1,38%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="funnel-card">
+        <div class="funnel-card-title"><span>🎬</span> Funil de Vídeo</div>
+        <div class="funnel-bars">
+          <div class="fb f-vid-1" style="height:100%;">
+            <span class="fb-lbl">Impressões</span>
+            <span class="fb-num">18.307</span><span class="fb-pct">100%</span>
+          </div>
+          <div class="fb f-vid-2" style="height:36.2%;">
+            <span class="fb-lbl">VV 3s</span>
+            <span class="fb-num">6.620</span><span class="fb-pct">36,2%</span>
+          </div>
+          <div class="fb f-vid-3" style="height:12.7%;">
+            <span class="fb-lbl">VV 50%</span>
+            <span class="fb-num">2.317</span><span class="fb-pct">12,7%</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Criativos CA -->
+    <p class="sec-lbl">Criativos da campanha de atração</p>
+    <div class="ca-creative-grid">
+
+      <!-- Anúncio 07 — melhor em seguidores -->
+      <div class="ca-creative-card rank1">
+        <div class="creative-top">
+          <span class="creative-badge" style="color:var(--green);background:rgba(62,207,142,.12);border:1px solid rgba(62,207,142,.25);">🏆 Anúncio 07 · mais seguidores</span>
+        </div>
+        <div class="creative-body">
+          <div class="creative-stat-row">
+            <div class="cs"><span class="cs-lbl">Seguidores</span><span class="cs-val hl-ca">155</span></div>
+            <div class="cs"><span class="cs-lbl">Custo/seg.</span><span class="cs-val hl-g">R$0,28</span></div>
+            <div class="cs"><span class="cs-lbl">CTR</span><span class="cs-val">5,52%</span></div>
+          </div>
+          <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px;">
+            <div class="cs"><span class="cs-lbl">Impressões</span><span class="cs-val" style="font-size:16px;">12.179</span></div>
+            <div class="cs"><span class="cs-lbl">CPM</span><span class="cs-val" style="font-size:16px;">R$3,62</span></div>
+            <div class="cs"><span class="cs-lbl">Visitas</span><span class="cs-val" style="font-size:16px;">557</span></div>
+            <div class="cs"><span class="cs-lbl">Retenção</span><span class="cs-val hl-g" style="font-size:16px;">42,46%</span></div>
+          </div>
+          <a class="creative-link" href="https://www.instagram.com/p/DXhhjNhgJfM/" target="_blank">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            Ver anúncio
+          </a>
+        </div>
+      </div>
+
+      <!-- Anúncio 06 -->
+      <div class="ca-creative-card rank2">
+        <div class="creative-top">
+          <span class="creative-badge" style="color:var(--ca);background:var(--ca-dim);border:1px solid var(--ca-border);">Anúncio 06</span>
+        </div>
+        <div class="creative-body">
+          <div class="creative-stat-row">
+            <div class="cs"><span class="cs-lbl">Seguidores</span><span class="cs-val hl-ca">110</span></div>
+            <div class="cs"><span class="cs-lbl">Custo/seg.</span><span class="cs-val">R$0,36</span></div>
+            <div class="cs"><span class="cs-lbl">CTR</span><span class="cs-val">5,73%</span></div>
+          </div>
+          <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px;">
+            <div class="cs"><span class="cs-lbl">Impressões</span><span class="cs-val" style="font-size:16px;">6.128</span></div>
+            <div class="cs"><span class="cs-lbl">CPM</span><span class="cs-val" style="font-size:16px;">R$6,52</span></div>
+            <div class="cs"><span class="cs-lbl">Visitas</span><span class="cs-val" style="font-size:16px;">373</span></div>
+            <div class="cs"><span class="cs-lbl">Retenção</span><span class="cs-val" style="font-size:16px;">18,42%</span></div>
+          </div>
+          <a class="creative-link" href="https://www.instagram.com/p/DWhTFrIAKCF/" target="_blank">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            Ver anúncio
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>Elevent · Vanezi · Tráfego Pago · 20/04 – 26/04/2026</p>
+    <div class="legend">
+      <div class="leg"><span class="dot" style="background:var(--cc)"></span>Conversão (CC)</div>
+      <div class="leg"><span class="dot" style="background:var(--ca)"></span>Atração (CA)</div>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>
